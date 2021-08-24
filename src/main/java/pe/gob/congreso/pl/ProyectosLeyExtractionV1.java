@@ -3,33 +3,41 @@ package pe.gob.congreso.pl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ProyectosLeyExtraction {
+public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey> {
 
-  static final Logger LOG = LoggerFactory.getLogger(ProyectosLeyExtraction.class);
+  static final Logger LOG = LoggerFactory.getLogger(ProyectosLeyExtractionV1.class);
 
-  public ProyectosLey load(final Periodo periodo) throws IOException {
-    var pls = new ProyectosLey(periodo);
+  @Override public ProyectosLey apply(Periodo periodo) {
+    try {
+      var pls = new ProyectosLey(periodo);
 
-    var index = 1;
-    var url = periodo.baseUrl + index;
+      var index = 1;
+      var url = periodo.baseUrl + index;
 
-    var proyectos = extractPaginaProyectos(url);
-    pls.addAll(proyectos);
-    while (proyectos.size() == periodo.batchSize) {
-      index = index + periodo.batchSize;
-      proyectos = extractPaginaProyectos(periodo.baseUrl + index);
+      var proyectos = extractPaginaProyectos(url);
       pls.addAll(proyectos);
+      while (proyectos.size() == periodo.batchSize) {
+        index = index + periodo.batchSize;
+        proyectos = extractPaginaProyectos(periodo.baseUrl + index);
+        pls.addAll(proyectos);
+      }
+      return pls;
+    } catch (Exception e) {
+      throw new RuntimeException("Error", e);
     }
-    return pls;
   }
 
   private Set<ProyectosLey.ProyectoLey> extractPaginaProyectos(String url) throws IOException {
@@ -43,7 +51,7 @@ public class ProyectosLeyExtraction {
         var tds = tr.select("td");
         var pl = new ProyectosLey.ProyectoLey(
             extractNumero(tds.get(0)),
-            extractFecha(tds.get(1)),
+            Optional.ofNullable(extractFecha(tds.get(1))),
             extractFecha(tds.get(2)),
             extractTexto(tds.get(3)),
             extractTexto(tds.get(4)),
@@ -77,10 +85,16 @@ public class ProyectosLeyExtraction {
   }
 
   public static void main(String[] args) throws IOException {
-    var pls = new ProyectosLeyExtraction().load(Periodo._1995_2000);
+    //var pls = new ProyectosLeyExtraction().apply(Periodo._1995_2000);
+    var pls = new ProyectosLeyExtractionV1().apply(Periodo._2000_2001);
+    //var pls = new ProyectosLeyExtraction().apply(Periodo._2001_2006);
+    //var pls = new ProyectosLeyExtraction().apply(Periodo._2006_2011);
+    //var pls = new ProyectosLeyExtraction().apply(Periodo._2011_2016);
+    //var pls = new ProyectosLeyExtraction().apply(Periodo._2016_2021);
     System.out.println(pls);
     ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     String json = mapper.writeValueAsString(pls.proyectos);
     System.out.println(json);
+    Files.writeString(Path.of("target/pl.json"), json);
   }
 }

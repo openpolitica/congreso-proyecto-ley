@@ -2,6 +2,7 @@ package pe.gob.congreso.pl;
 
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class ProyectosLey {
@@ -23,7 +24,7 @@ public class ProyectosLey {
 
   record ProyectoLey (
       int numero,
-      LocalDate ultimaModificacion,
+      Optional<LocalDate> ultimaModificacion,
       LocalDate presentacion,
       String estado,
       String titulo,
