@@ -1,4 +1,4 @@
-package pe.gob.congreso.pl;
+package pe.gob.congreso.pl.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -14,6 +14,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.function.Function;
+import pe.gob.congreso.pl.Periodo;
+import pe.gob.congreso.pl.ProyectosLey;
 
 import static pe.gob.congreso.pl.Constants.BASE_URL_V2;
 
@@ -26,12 +28,12 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
       var pls = new ProyectosLey(periodo);
 
       var requestJson = mapper.createObjectNode()
-          .put("perParId", periodo.desde);
+          .put("perParId", periodo.desde());
       var response = httpClient.send(
           HttpRequest.newBuilder()
               .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(requestJson)))
               .header("Content-Type", "application/json")
-              .uri(URI.create(periodo.baseUrl))
+              .uri(URI.create(periodo.baseUrl()))
               .build(),
           HttpResponse.BodyHandlers.ofString());
       System.out.println(response.body());
@@ -51,7 +53,7 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
                 DateTimeFormatter.ofPattern("yyyy-MM-dd")),
             item.get("desEstado").textValue(),
             item.get("titulo").textValue(),
-            BASE_URL_V2 + "/spley-portal/#/expediente/%s/%s".formatted(periodo.desde, num)
+            BASE_URL_V2 + "/spley-portal/#/expediente/%s/%s".formatted(periodo.desde(), num)
         ));
       }
 
@@ -65,7 +67,7 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
     var pls = new ProyectosLeyExtractionV2().apply(Periodo._2021_2026);
     System.out.println(pls);
     ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-    String json = mapper.writeValueAsString(pls.proyectos);
+    String json = mapper.writeValueAsString(pls.proyectos());
     System.out.println(json);
     Files.writeString(Path.of("target/pl.json"), json);
   }

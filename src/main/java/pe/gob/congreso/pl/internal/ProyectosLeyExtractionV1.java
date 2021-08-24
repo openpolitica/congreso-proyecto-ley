@@ -1,4 +1,4 @@
-package pe.gob.congreso.pl;
+package pe.gob.congreso.pl.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -15,6 +15,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pe.gob.congreso.pl.Periodo;
+import pe.gob.congreso.pl.ProyectosLey;
 
 public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey> {
 
@@ -25,13 +27,13 @@ public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey>
       var pls = new ProyectosLey(periodo);
 
       var index = 1;
-      var url = periodo.baseUrl + index;
+      var url = periodo.baseUrl() + index;
 
       var proyectos = extractPaginaProyectos(url);
       pls.addAll(proyectos);
-      while (proyectos.size() == periodo.batchSize) {
-        index = index + periodo.batchSize;
-        proyectos = extractPaginaProyectos(periodo.baseUrl + index);
+      while (proyectos.size() == periodo.batchSize()) {
+        index = index + periodo.batchSize();
+        proyectos = extractPaginaProyectos(periodo.baseUrl() + index);
         pls.addAll(proyectos);
       }
       return pls;
@@ -93,7 +95,7 @@ public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey>
     //var pls = new ProyectosLeyExtraction().apply(Periodo._2016_2021);
     System.out.println(pls);
     ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-    String json = mapper.writeValueAsString(pls.proyectos);
+    String json = mapper.writeValueAsString(pls.proyectos());
     System.out.println(json);
     Files.writeString(Path.of("target/pl.json"), json);
   }

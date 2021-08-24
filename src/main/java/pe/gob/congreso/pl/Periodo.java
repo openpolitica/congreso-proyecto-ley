@@ -1,11 +1,13 @@
 package pe.gob.congreso.pl;
 
 import java.util.function.Function;
+import pe.gob.congreso.pl.internal.ProyectosLeyExtractionV1;
+import pe.gob.congreso.pl.internal.ProyectosLeyExtractionV2;
 
 import static pe.gob.congreso.pl.Constants.BASE_URL_V1;
 import static pe.gob.congreso.pl.Constants.BASE_URL_V2;
 
-enum Periodo {
+public enum Periodo {
   _1995_2000(1995, 2000,
       BASE_URL_V1 + "/Sicr/TraDocEstProc/CLProLey1995.nsf/Local Por Numero?OpenView&Start=",
       30,
@@ -49,5 +51,21 @@ enum Periodo {
     this.baseUrl = baseUrl;
     this.batchSize = batchSize;
     this.extractProyectosLeyFunction = extractProyectosLeyFunction;
+  }
+
+  public int desde() {
+    return desde;
+  }
+
+  public int hasta() {
+    return hasta;
+  }
+
+  public String baseUrl() {
+    return baseUrl;
+  }
+
+  public int batchSize() {
+    return batchSize;
   }
 }
