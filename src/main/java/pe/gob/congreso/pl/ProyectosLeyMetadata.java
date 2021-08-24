@@ -30,16 +30,16 @@ public class ProyectosLeyMetadata {
   public record ProyectoLeyMetadata (
       Periodo periodo,
       int numero,
-      String numeroPeriodo,
+      Optional<String> numeroPeriodo,
       String legislatura,
       LocalDate fechaPresentacion,
       String proponente,
       String titulo,
-      String sumilla,
-      String grupoParlamentario,
+      Optional<String> sumilla,
+      Optional<String> grupoParlamentario,
       String estadoActual,
 
-      Set<Congresista> autores,
+      Optional<Congresista> autores,
       Set<Congresista> coAutores,
       Set<Congresista> adherentes,
 
@@ -49,9 +49,9 @@ public class ProyectosLeyMetadata {
 
   public record Congresista (
       String nombreCompleto,
-      String dni,
-      String sexo,
-      String url
+      Optional<String> dni,
+      Optional<String> sexo,
+      Optional<String> url
   ) {}
 
   public record Seguimiento (

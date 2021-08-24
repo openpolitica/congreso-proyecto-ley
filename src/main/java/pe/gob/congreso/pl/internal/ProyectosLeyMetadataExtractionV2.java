@@ -56,17 +56,17 @@ public class ProyectosLeyMetadataExtractionV2 {
         return new ProyectosLeyMetadata.ProyectoLeyMetadata(
             pl.periodo(),
             data.get("general").get("pleyId").asInt(),
-            data.get("general").get("proyectoLey").textValue(),
+            Optional.of(data.get("general").get("proyectoLey").textValue()),
             data.get("general").get("desLegis").textValue(),
             LocalDate.parse(data.get("general").get("fecPresentacion").asText(),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd")),
             data.get("general").get("desProponente").textValue(),
             data.get("general").get("titulo").textValue(),
-            data.get("general").get("sumilla").textValue(),
-            data.get("general").get("desGpar").textValue(),
+            Optional.ofNullable(data.get("general").get("sumilla")).map(JsonNode::textValue),
+            Optional.ofNullable(data.get("general").get("desGpar")).map(JsonNode::textValue),
             data.get("general").get("desEstado").textValue(),
 
-            firmantes.get(1),
+            firmantes.get(1).stream().findAny(),
             firmantes.get(2),
             firmantes.get(3),
 
@@ -106,9 +106,9 @@ public class ProyectosLeyMetadataExtractionV2 {
           congresistas.add(
               new ProyectosLeyMetadata.Congresista(
                   item.get("nombre").textValue(),
-                  item.get("dni").textValue(),
-                  item.get("sexo").textValue(),
-                  item.get("pagWeb").textValue()
+                  Optional.of(item.get("dni")).map(JsonNode::textValue),
+                  Optional.of(item.get("sexo")).map(JsonNode::textValue),
+                  Optional.of(item.get("pagWeb")).map(JsonNode::textValue)
               )
           );
           return congresistas;
