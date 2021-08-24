@@ -47,6 +47,7 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
       for (var item : dataArray) {
         var num = item.get("pleyNum").asInt();
         pls.add(new ProyectosLey.ProyectoLey(
+            periodo,
             num,
             Optional.empty(),
             LocalDate.parse(item.get("fecPresentacion").textValue(),

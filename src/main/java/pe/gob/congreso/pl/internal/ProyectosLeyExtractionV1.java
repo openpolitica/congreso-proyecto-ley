@@ -27,13 +27,12 @@ public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey>
       var pls = new ProyectosLey(periodo);
 
       var index = 1;
-      var url = periodo.baseUrl() + index;
 
-      var proyectos = extractPaginaProyectos(url);
+      var proyectos = extractPaginaProyectos(periodo, periodo.baseUrl() + index);
       pls.addAll(proyectos);
       while (proyectos.size() == periodo.batchSize()) {
         index = index + periodo.batchSize();
-        proyectos = extractPaginaProyectos(periodo.baseUrl() + index);
+        proyectos = extractPaginaProyectos(periodo, periodo.baseUrl() + index);
         pls.addAll(proyectos);
       }
       return pls;
@@ -42,7 +41,7 @@ public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey>
     }
   }
 
-  private Set<ProyectosLey.ProyectoLey> extractPaginaProyectos(String url) throws IOException {
+  private Set<ProyectosLey.ProyectoLey> extractPaginaProyectos(Periodo periodo, String url) throws IOException {
     var proyectos = new LinkedHashSet<ProyectosLey.ProyectoLey>();
     var doc = Jsoup.connect(url).get();
     var table = doc.body().select("table[cellpadding=2]").first();
@@ -52,6 +51,7 @@ public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey>
       for (var tr : trs) {
         var tds = tr.select("td");
         var pl = new ProyectosLey.ProyectoLey(
+            periodo,
             extractNumero(tds.get(0)),
             Optional.ofNullable(extractFecha(tds.get(1))),
             extractFecha(tds.get(2)),

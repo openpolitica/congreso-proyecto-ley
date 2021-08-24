@@ -28,6 +28,7 @@ public class ProyectosLey {
   }
 
   public record ProyectoLey (
+      Periodo periodo,
       int numero,
       Optional<LocalDate> ultimaModificacion,
       LocalDate presentacion,
