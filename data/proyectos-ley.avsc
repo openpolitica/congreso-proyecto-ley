@@ -1,0 +1,261 @@
+{
+  "name": "ProyectoLey",
+  "type": "record",
+  "namespace": "pe.gob.congreso.pl.data",
+  "fields": [
+    {
+      "name": "periodo",
+      "type": "string"
+    },
+    {
+      "name": "periodo_numero",
+      "type": "string"
+    },
+    {
+      "name": "estado",
+      "type": "string"
+    },
+    {
+      "name": "publicacion_fecha",
+      "type": "long"
+    },
+    {
+      "name": "actualizacion_fecha",
+      "type": [
+        "long",
+        "null"
+      ]
+    },
+    {
+      "name": "numero_unico",
+      "type": "string"
+    },
+    {
+      "name": "titulo",
+      "type": "string"
+    },
+    {
+      "name": "sumilla",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": "null"
+    },
+    {
+      "name": "legislatura",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    {
+      "name": "proponente",
+      "type": "string"
+    },
+    {
+      "name": "grupo_parlamentario",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": "null"
+    },
+    {
+      "name": "iniciativas_agrupadas",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    {
+      "name": "autores",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "Congresista",
+          "fields": [
+            {
+              "name": "nombre_completo",
+              "type": "string"
+            },
+            {
+              "name": "correo_electronico",
+              "type": ["null", "string"]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "adherentes",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    {
+      "name": "seguimiento_texto",
+      "type": "string"
+    },
+    {
+      "name": "seguimiento",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "Seguimiento",
+          "fields": [
+            {
+              "name": "fecha",
+              "type": "long"
+            },
+            {
+              "name": "evento",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "sectores",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    {
+      "name": "expediente",
+      "type": [
+        "null",
+        {
+          "name": "Expediente",
+          "type": "record",
+          "fields": [
+            {
+              "name": "titulo",
+              "type": [
+                "string",
+                "null"
+              ],
+              "default": "null"
+            },
+            {
+              "name": "subtitulo",
+              "type": [
+                "string",
+                "null"
+              ],
+              "default": "null"
+            },
+            {
+              "name": "documentos",
+              "type": {
+                "type": "array",
+                "items": {
+                  "type": "record",
+                  "name": "Documento",
+                  "fields": [
+                    {
+                      "name": "titulo",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": "null"
+                    },
+                    {
+                      "name": "tipo",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "enlace",
+                      "type": "string"
+                    },
+                    {
+                      "name": "fecha",
+                      "type": [
+                        "long",
+                        "null"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ley",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "Ley",
+          "fields": [
+            {
+              "name": "numero",
+              "type": "string"
+            },
+            {
+              "name": "titulo",
+              "type": [
+                "string",
+                "null"
+              ],
+              "default": "null"
+            },
+            {
+              "name": "sumilla",
+              "type": [
+                "string",
+                "null"
+              ],
+              "default": "null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "enlaces",
+      "type": {
+        "type": "record",
+        "name": "Enlaces",
+        "fields": [
+          {
+            "name": "seguimiento",
+            "type": "string"
+          },
+          {
+            "name": "expediente",
+            "type": "string"
+          },
+          {
+            "name": "opiniones_publicadas",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": "null"
+          },
+          {
+            "name": "opiniones_publicar",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": "null"
+          }
+        ]
+      }
+    }
+  ]
+}
