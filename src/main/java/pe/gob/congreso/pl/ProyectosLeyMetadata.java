@@ -56,8 +56,8 @@ public class ProyectosLeyMetadata {
 
   public record Seguimiento (
     LocalDate fecha,
-    String estado,
-    Optional<String> comision,
-    String detalle
+    String detalle,
+    Optional<String> estado,
+    Optional<String> comision
   ) {}
 }

@@ -86,9 +86,9 @@ public class ProyectosLeyMetadataExtractionV2 {
       for (var item : seguimientos) {
         s.add(new ProyectosLeyMetadata.Seguimiento(
             LocalDate.parse(item.get("fecha").asText(), DateTimeFormatter.ofPattern("yyyy-MM-dd'T'kk:mm:ss.SSSZ")),
-            item.get("desEstado").textValue(),
-            Optional.ofNullable(item.get("desComision")).map(JsonNode::textValue),
-            item.get("detalle").textValue()
+            item.get("detalle").textValue(),
+            Optional.ofNullable(item.get("desEstado")).map(JsonNode::textValue),
+            Optional.ofNullable(item.get("desComision")).map(JsonNode::textValue)
         ));
       }
       return s;
