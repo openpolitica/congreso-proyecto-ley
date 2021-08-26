@@ -15,16 +15,9 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
   static final Logger LOG = LoggerFactory.getLogger(ProyectosLeyLoadSqlite.class);
 
   static List<TableLoad> tableLoadList = List.of(
-      new ProyectoTableLoad()
-
-      //new ExpedienteTableLoad(),
-      //new IniciativaAgrupadaTableLoad(),
-      //new CongresistaTableLoad(),
-
-      //new AdherenteTableLoad(),
-      //new AutorTableLoad(),
-      //new ComisionTableLoad(),
-      //new SeguimientoTableLoad()
+      new ProyectoTableLoad(),
+      new SeguimientoTableLoad(),
+      new FirmanteTableLoad()
   );
 
   @Override public void accept(ProyectosLeyMetadata meta) {
@@ -120,6 +113,92 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
       if (pl.comisionActual().isPresent()) ps.setString(12, pl.comisionActual().get());
       if (pl.urlExpediente().isPresent()) ps.setString(13, pl.urlExpediente().get());
       ps.addBatch();
+    }
+  }
+
+  static class SeguimientoTableLoad extends TableLoad {
+    public SeguimientoTableLoad() {
+      super("seguimiento");
+    }
+
+    @Override String createTableStatement() {
+      return """
+          insert into %s values (
+            ?, ?, ?, ?, ?
+          )
+          """.formatted(tableName);
+    }
+
+    @Override String prepareStatement() {
+      return """
+          create table %s (
+            proyecto_ley_id text primary key,
+            fecha text not null,
+            detalle text not null,
+            comision text,
+            estado text,
+            FOREIGN KEY(proyecto_ley_id) REFERENCES proyecto_ley(id)
+          )
+          """.formatted(tableName);
+    }
+
+    @Override void addBatch(PreparedStatement ps, ProyectosLeyMetadata.ProyectoLeyMetadata pl)
+        throws SQLException {
+      for (var s : pl.seguimientos()) {
+        ps.setString(1, pl.id());
+        ps.setString(2, s.fecha().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")));
+        ps.setString(3, s.detalle());
+        if (s.comision().isPresent()) ps.setString(4, s.comision().get());
+        if (s.estado().isPresent()) ps.setString(5, s.estado().get());
+        ps.addBatch();
+      }
+    }
+  }
+
+  static class FirmanteTableLoad extends TableLoad {
+    public FirmanteTableLoad() {
+      super("firmante");
+    }
+
+    @Override String createTableStatement() {
+      return """
+          insert into %s values (
+            ?, ?, ?
+          )
+          """.formatted(tableName);
+    }
+
+    @Override String prepareStatement() {
+      return """
+          create table %s (
+            proyecto_ley_id text primary key,
+            congresista text not null,
+            firmante_tipo text not null,
+            FOREIGN KEY(proyecto_ley_id) REFERENCES proyecto_ley(id)
+          )
+          """.formatted(tableName);
+    }
+
+    @Override void addBatch(PreparedStatement ps, ProyectosLeyMetadata.ProyectoLeyMetadata pl)
+        throws SQLException {
+      if (pl.autores().isPresent()) {
+        ps.setString(1, pl.id());
+        ps.setString(2, pl.autores().get().nombreCompleto());
+        ps.setString(3, "AUTOR");
+        ps.addBatch();
+      }
+      for (var f : pl.coAutores()) {
+        ps.setString(1, pl.id());
+        ps.setString(2, f.nombreCompleto());
+        ps.setString(3, "COAUTOR");
+        ps.addBatch();
+      }
+      for (var f : pl.adherentes()) {
+        ps.setString(1, pl.id());
+        ps.setString(2, f.nombreCompleto());
+        ps.setString(3, "ADHERENTE");
+        ps.addBatch();
+      }
     }
   }
 }

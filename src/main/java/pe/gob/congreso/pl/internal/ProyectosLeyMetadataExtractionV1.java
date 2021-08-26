@@ -1,5 +1,8 @@
 package pe.gob.congreso.pl.internal;
 
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -7,7 +10,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -15,27 +17,39 @@ import java.util.stream.Collectors;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pe.gob.congreso.pl.Periodo;
 import pe.gob.congreso.pl.ProyectosLey;
 import pe.gob.congreso.pl.ProyectosLeyMetadata;
 
 import static java.util.stream.Collectors.toList;
-import static pe.gob.congreso.pl.Constants.BASE_URL_V1;
 
 public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, ProyectosLeyMetadata> {
+
+  static final Logger LOG = LoggerFactory.getLogger(ProyectosLeyMetadataExtractionV1.class);
 
   @Override public ProyectosLeyMetadata apply(ProyectosLey proyectosLey) {
     var meta = new ProyectosLeyMetadata(proyectosLey.periodo);
     meta.addAll(proyectosLey.proyectos().stream()
         .parallel()
-        .map(new ProyectoLeyMetadataExtraction())
+        .map(p ->
+            Retry.decorateFunction(
+                    Retry.of("importar", RetryConfig.custom()
+                        .maxAttempts(3)
+                        .retryExceptions(RuntimeException.class)
+                        .waitDuration(Duration.ofSeconds(10))
+                        .build()),
+                    new ProyectoLeyMetadataExtraction())
+                .apply(p)
+            )
         .collect(Collectors.toSet()));
     return meta;
   }
 
   static class ProyectoLeyMetadataExtraction
       implements Function<ProyectosLey.ProyectoLey, ProyectosLeyMetadata.ProyectoLeyMetadata> {
-    static final Pattern datePattern = Pattern.compile("\\d{2}/\\d{2}/\\d{4}");
+    static final Pattern datePattern = Pattern.compile("\\d{2}/\\d{2}/\\d{4} ");
 
     @Override
     public ProyectosLeyMetadata.ProyectoLeyMetadata apply(ProyectosLey.ProyectoLey pl) {
@@ -43,9 +57,11 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
         var doc = Jsoup.connect(pl.url()).get();
         var body = doc.body();
         var inputs = body.select("input");
-        //rm
-        for (var i : inputs) {
-          System.out.println(i);
+
+        var codIni = inputs.select("input[name=CodIni]").first();
+        if (codIni == null) {
+          LOG.warn("Error looking up for PL number: {}", pl.url());
+          return ProyectosLeyMetadata.ProyectoLeyMetadata.from(pl);
         }
 
         var seg =
@@ -66,7 +82,7 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
             if (matcher.find()) {
               var fecha = matcher.group();
               seguimientos.add(new ProyectosLeyMetadata.Seguimiento(
-                  LocalDate.parse(fecha, DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                  LocalDate.parse(fecha.trim(), DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                   texto,
                   Optional.empty(),
                   Optional.empty()
@@ -94,11 +110,12 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
         var adherentes = autores(extractInputValue(inputs, "Adherentes"));
 
         var autor = autores.stream().findFirst();
-        autores.remove(0);
+        if (!autores.isEmpty()) autores.remove(0);
         var desGrupParla = extractInputValue(inputs, "DesGrupParla");
+        var desGrupPol = extractInputValue(inputs, "DesGrupPol");
         return new ProyectosLeyMetadata.ProyectoLeyMetadata(
             pl.periodo(),
-            Integer.parseInt(Objects.requireNonNull(inputs.select("input[name=CodIni]").first()).attr("value")),
+            Integer.parseInt(codIni.attr("value")),
             extractInputValue(inputs, "CodIni_web"),
             extractInputValue(inputs, "TitIni").orElse(""),
             extractInputValue(inputs, "CodUltEsta").orElse(""),
@@ -107,7 +124,7 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
             extractInputValue(inputs, "DesLegis"),
             extractInputValue(inputs, "DesPropo"),
             extractInputValue(inputs, "SumIni"),
-            desGrupParla.isPresent() ? desGrupParla : extractInputValue(inputs, "DesGrupPol"),
+            desGrupParla.isPresent() ? (desGrupParla.get().isEmpty() ? desGrupPol : desGrupParla) : desGrupPol,
 
             autor,
             new HashSet<>(autores),
@@ -120,6 +137,7 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
             extractInputValue(inputs, "NombreDelEnlace")
         );
       } catch (Exception e) {
+        LOG.error("Error {}", pl.url());
         throw new RuntimeException("Error", e);
       }
     }
@@ -144,12 +162,12 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
 
     public static void main(String[] args) {
       var meta = new ProyectoLeyMetadataExtraction().apply(
-          new ProyectosLey.ProyectoLey(Periodo._2016_2021,
+          new ProyectosLey.ProyectoLey(Periodo._2011_2016,
               6,
               Optional.empty(),
               LocalDate.now(),
               "", "",
-              "/Sicr/TraDocEstProc/CLProLey1995.nsf/4ddaa53c5fb314620525800b007fc25d/cc8efeaa7d86e56105256ce1006a5dc2?OpenDocument"));
+              "https://www2.congreso.gob.pe/Sicr/TraDocEstProc/CLProLey2011.nsf/f7fff46988ca05b1052578e100829cc7/4454a8686016402f05258385006270b9?OpenDocument"));
       //"/Sicr/TraDocEstProc/CLProLey2016.nsf/641842f7e5d631bd052578e20058a231/175cc98efc894940052587120055dbf9?OpenDocument"));
       System.out.println(meta);
     }
