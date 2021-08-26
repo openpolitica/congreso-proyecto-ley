@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import pe.gob.congreso.pl.Periodo;
 import pe.gob.congreso.pl.ProyectosLey;
 
+import static pe.gob.congreso.pl.Constants.BASE_URL_V1;
+
 public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey> {
 
   static final Logger LOG = LoggerFactory.getLogger(ProyectosLeyExtractionV1.class);
@@ -83,7 +85,7 @@ public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey>
   }
 
   private String extractUrl(Element element) {
-    return element.select("a").attr("href");
+    return BASE_URL_V1 + element.select("a").attr("href");
   }
 
   public static void main(String[] args) throws IOException {

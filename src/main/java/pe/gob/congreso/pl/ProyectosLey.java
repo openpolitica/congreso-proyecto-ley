@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class ProyectosLey {
 
-  final Periodo periodo;
+  public final Periodo periodo;
   Set<ProyectoLey> proyectos = new LinkedHashSet<>();
 
   public ProyectosLey(Periodo periodo) {

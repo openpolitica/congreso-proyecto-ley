@@ -8,15 +8,11 @@ import java.util.Set;
 
 public class ProyectosLeyMetadata {
 
-  final Periodo periodo;
+  public final Periodo periodo;
   Set<ProyectoLeyMetadata> proyectos = new LinkedHashSet<>();
 
   public ProyectosLeyMetadata(Periodo periodo) {
     this.periodo = periodo;
-  }
-
-  public void add(ProyectoLeyMetadata proyectoLey) {
-    proyectos.add(proyectoLey);
   }
 
   public void addAll(Set<ProyectoLeyMetadata> proyectos) {
@@ -31,21 +27,51 @@ public class ProyectosLeyMetadata {
       Periodo periodo,
       int numero,
       Optional<String> numeroPeriodo,
-      String legislatura,
-      LocalDate fechaPresentacion,
-      String proponente,
       String titulo,
+      String estadoActual,
+      LocalDate fechaPresentacion,
+      Optional<String> legislatura,
+      Optional<String> proponente,
       Optional<String> sumilla,
       Optional<String> grupoParlamentario,
-      String estadoActual,
 
       Optional<Congresista> autores,
       Set<Congresista> coAutores,
       Set<Congresista> adherentes,
 
       Set<Seguimiento> seguimientos,
-      Set<String> comisiones
-  ) {}
+      Set<String> comisiones,
+      Optional<String> comisionActual,
+
+      Optional<String> urlExpediente
+  ) {
+    public static ProyectoLeyMetadata from(ProyectosLey.ProyectoLey pl) {
+      return new ProyectoLeyMetadata(
+          pl.periodo(),
+          pl.numero(),
+          Optional.empty(),
+          pl.titulo(),
+          pl.estado(),
+          pl.presentacion(),
+          Optional.empty(),
+          Optional.empty(),
+          Optional.empty(),
+          Optional.empty(),
+          Optional.empty(),
+          Set.of(),
+          Set.of(),
+          Set.of(),
+          Set.of(),
+          Optional.empty(),
+          Optional.ofNullable(pl.url())
+      );
+    }
+
+    public String id() {
+      var f = "%06d".formatted(numero);
+      return "%d-%d-%s".formatted(periodo.desde(), periodo.hasta(), f);
+    }
+  }
 
   public record Congresista (
       String nombreCompleto,

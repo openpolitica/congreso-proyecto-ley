@@ -1,6 +1,5 @@
 package pe.gob.congreso.pl.internal;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -10,13 +9,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.jsoup.select.NodeFilter;
 import pe.gob.congreso.pl.Periodo;
 import pe.gob.congreso.pl.ProyectosLey;
 import pe.gob.congreso.pl.ProyectosLeyMetadata;
@@ -24,7 +22,16 @@ import pe.gob.congreso.pl.ProyectosLeyMetadata;
 import static java.util.stream.Collectors.toList;
 import static pe.gob.congreso.pl.Constants.BASE_URL_V1;
 
-public class ProyectosLeyMetadataExtractionV1 {
+public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, ProyectosLeyMetadata> {
+
+  @Override public ProyectosLeyMetadata apply(ProyectosLey proyectosLey) {
+    var meta = new ProyectosLeyMetadata(proyectosLey.periodo);
+    meta.addAll(proyectosLey.proyectos().stream()
+        .parallel()
+        .map(new ProyectoLeyMetadataExtraction())
+        .collect(Collectors.toSet()));
+    return meta;
+  }
 
   static class ProyectoLeyMetadataExtraction
       implements Function<ProyectosLey.ProyectoLey, ProyectosLeyMetadata.ProyectoLeyMetadata> {
@@ -33,7 +40,7 @@ public class ProyectosLeyMetadataExtractionV1 {
     @Override
     public ProyectosLeyMetadata.ProyectoLeyMetadata apply(ProyectosLey.ProyectoLey pl) {
       try {
-        var doc = Jsoup.connect(BASE_URL_V1 + pl.url()).get();
+        var doc = Jsoup.connect(pl.url()).get();
         var body = doc.body();
         var inputs = body.select("input");
         //rm
@@ -88,25 +95,29 @@ public class ProyectosLeyMetadataExtractionV1 {
 
         var autor = autores.stream().findFirst();
         autores.remove(0);
+        var desGrupParla = extractInputValue(inputs, "DesGrupParla");
         return new ProyectosLeyMetadata.ProyectoLeyMetadata(
             pl.periodo(),
             Integer.parseInt(Objects.requireNonNull(inputs.select("input[name=CodIni]").first()).attr("value")),
             extractInputValue(inputs, "CodIni_web"),
-            extractInputValue(inputs, "DesLegis").orElse(""),
+            extractInputValue(inputs, "TitIni").orElse(""),
+            extractInputValue(inputs, "CodUltEsta").orElse(""),
             LocalDate.parse(extractInputValue(inputs, "FecPres").get(),
                 DateTimeFormatter.ofPattern("MM/dd/yyyy")),
-            extractInputValue(inputs, "DesPropo").orElse(""),
-            extractInputValue(inputs, "TitIni").orElse(""),
+            extractInputValue(inputs, "DesLegis"),
+            extractInputValue(inputs, "DesPropo"),
             extractInputValue(inputs, "SumIni"),
-            extractInputValue(inputs, "DesGrupParla"),
-            extractInputValue(inputs, "CodUltEsta").orElse(""),
+            desGrupParla.isPresent() ? desGrupParla : extractInputValue(inputs, "DesGrupPol"),
 
-            autor, //firmantes.get(1),
-            new HashSet<>(autores), //firmantes.get(2),
-            new HashSet<>(adherentes), //firmantes.get(3),
+            autor,
+            new HashSet<>(autores),
+            new HashSet<>(adherentes),
 
             seguimientos,
-            comisiones
+            comisiones,
+            extractInputValue(inputs, "NombreDeLaComision"),
+
+            extractInputValue(inputs, "NombreDelEnlace")
         );
       } catch (Exception e) {
         throw new RuntimeException("Error", e);

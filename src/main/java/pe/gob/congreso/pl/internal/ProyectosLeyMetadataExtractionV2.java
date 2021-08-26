@@ -16,16 +16,29 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pe.gob.congreso.pl.Periodo;
 import pe.gob.congreso.pl.ProyectosLey;
 import pe.gob.congreso.pl.ProyectosLeyMetadata;
 
 import static pe.gob.congreso.pl.Constants.BASE_URL_V2;
 
-public class ProyectosLeyMetadataExtractionV2 {
+public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, ProyectosLeyMetadata> {
+
+  static final Logger LOG = LoggerFactory.getLogger(ProyectosLeyMetadataExtractionV2.class);
 
   static HttpClient httpClient = HttpClient.newBuilder().build();
   static ObjectMapper mapper = new ObjectMapper();
+
+  @Override public ProyectosLeyMetadata apply(ProyectosLey proyectosLey) {
+    var meta = new ProyectosLeyMetadata(proyectosLey.periodo);
+    meta.addAll(proyectosLey.proyectos().stream()
+        .parallel()
+        .map(new ProyectoLeyMetadataExtraction())
+        .collect(Collectors.toSet()));
+    return meta;
+  }
 
   static class ProyectoLeyMetadataExtraction
       implements Function<ProyectosLey.ProyectoLey, ProyectosLeyMetadata.ProyectoLeyMetadata> {
@@ -33,14 +46,19 @@ public class ProyectosLeyMetadataExtractionV2 {
     @Override
     public ProyectosLeyMetadata.ProyectoLeyMetadata apply(ProyectosLey.ProyectoLey pl) {
       try {
+        var url = BASE_URL_V2 + "/spley-portal-service/expediente/%s/%s"
+            .formatted(pl.periodo().desde(), pl.numero());
         var response = httpClient.send(
             HttpRequest.newBuilder()
                 .GET()
-                .uri(URI.create(BASE_URL_V2 + "/spley-portal-service/expediente/%s/%s"
-                    .formatted(pl.periodo().desde(), pl.numero())))
+                .uri(URI.create(url))
                 .build(),
             HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() != 200) throw new IllegalStateException("Response fail");
+        if (response.statusCode() == 404) {
+          LOG.warn("PL {}/{} not found. URL: {}", pl.periodo().texto(), pl.numero(), url);
+          return ProyectosLeyMetadata.ProyectoLeyMetadata.from(pl);
+        }
+        if (response.statusCode() != 200) throw new IllegalStateException("Response fail: " + response.statusCode() + " :: " + response.body());
         var responseJson = mapper.readTree(response.body());
         if (responseJson.get("code").intValue() != 200 ||
             !responseJson.get("status").textValue().equals("success")) {
@@ -53,28 +71,32 @@ public class ProyectosLeyMetadataExtractionV2 {
 
         var seguimientos = seguimientos((ArrayNode) data.get("seguimientos"));
 
+        var comisiones = seguimientos.stream().map(ProyectosLeyMetadata.Seguimiento::comision)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toSet());
         return new ProyectosLeyMetadata.ProyectoLeyMetadata(
             pl.periodo(),
             data.get("general").get("pleyId").asInt(),
             Optional.of(data.get("general").get("proyectoLey").textValue()),
-            data.get("general").get("desLegis").textValue(),
+            data.get("general").get("titulo").textValue(),
+            data.get("general").get("desEstado").textValue(),
             LocalDate.parse(data.get("general").get("fecPresentacion").asText(),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-            data.get("general").get("desProponente").textValue(),
-            data.get("general").get("titulo").textValue(),
+            Optional.ofNullable(data.get("general").get("desLegis")).map(JsonNode::textValue),
+            Optional.ofNullable(data.get("general").get("desProponente")).map(JsonNode::textValue),
             Optional.ofNullable(data.get("general").get("sumilla")).map(JsonNode::textValue),
             Optional.ofNullable(data.get("general").get("desGpar")).map(JsonNode::textValue),
-            data.get("general").get("desEstado").textValue(),
 
             firmantes.get(1).stream().findAny(),
             firmantes.get(2),
             firmantes.get(3),
 
             seguimientos,
-            seguimientos.stream().map(ProyectosLeyMetadata.Seguimiento::comision)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet())
+            comisiones,
+            comisiones.stream().reduce((s, s2) -> s2),
+
+            Optional.of(pl.url())
         );
       } catch (Exception e) {
         throw new RuntimeException("Error", e);
