@@ -30,13 +30,18 @@ public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey>
 
       var index = 1;
 
-      var proyectos = extractPaginaProyectos(periodo, periodo.baseUrl() + index);
+      var first = periodo.baseUrl() + index;
+      LOG.info("Extracting PL list from {}", first);
+      var proyectos = extractPaginaProyectos(periodo, first);
       pls.addAll(proyectos);
       while (proyectos.size() == periodo.batchSize()) {
         index = index + periodo.batchSize();
-        proyectos = extractPaginaProyectos(periodo, periodo.baseUrl() + index);
+        var url = periodo.baseUrl() + index;
+        LOG.info("Extracting PL list from {}", url);
+        proyectos = extractPaginaProyectos(periodo, url);
         pls.addAll(proyectos);
       }
+      LOG.info("{} PLs extracted", pls.proyectos().size());
       return pls;
     } catch (Exception e) {
       throw new RuntimeException("Error", e);

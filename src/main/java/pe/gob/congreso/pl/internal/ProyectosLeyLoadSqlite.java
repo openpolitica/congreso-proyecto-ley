@@ -59,7 +59,8 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
 
     abstract String prepareStatement();
 
-    abstract void addBatch(PreparedStatement ps, ProyectosLeyMetadata.ProyectoLeyMetadata pl) throws SQLException;
+    abstract void addBatch(PreparedStatement ps, ProyectosLeyMetadata.ProyectoLeyMetadata pl)
+        throws SQLException;
   }
 
   static class ProyectoTableLoad extends TableLoad {
@@ -121,7 +122,7 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
       super("seguimiento");
     }
 
-    @Override String createTableStatement() {
+    @Override String prepareStatement() {
       return """
           insert into %s values (
             ?, ?, ?, ?, ?
@@ -129,10 +130,10 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
           """.formatted(tableName);
     }
 
-    @Override String prepareStatement() {
+    @Override String createTableStatement() {
       return """
           create table %s (
-            proyecto_ley_id text primary key,
+            proyecto_ley_id text,
             fecha text not null,
             detalle text not null,
             comision text,
@@ -160,7 +161,7 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
       super("firmante");
     }
 
-    @Override String createTableStatement() {
+    @Override String prepareStatement() {
       return """
           insert into %s values (
             ?, ?, ?
@@ -168,10 +169,10 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
           """.formatted(tableName);
     }
 
-    @Override String prepareStatement() {
+    @Override String createTableStatement() {
       return """
           create table %s (
-            proyecto_ley_id text primary key,
+            proyecto_ley_id text,
             congresista text not null,
             firmante_tipo text not null,
             FOREIGN KEY(proyecto_ley_id) REFERENCES proyecto_ley(id)

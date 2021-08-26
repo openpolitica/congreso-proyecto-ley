@@ -25,11 +25,13 @@ import pe.gob.congreso.pl.ProyectosLeyMetadata;
 
 import static java.util.stream.Collectors.toList;
 
-public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, ProyectosLeyMetadata> {
+public class ProyectosLeyMetadataExtractionV1
+    implements Function<ProyectosLey, ProyectosLeyMetadata> {
 
   static final Logger LOG = LoggerFactory.getLogger(ProyectosLeyMetadataExtractionV1.class);
 
   @Override public ProyectosLeyMetadata apply(ProyectosLey proyectosLey) {
+    LOG.info("Extracting PL metadata");
     var meta = new ProyectosLeyMetadata(proyectosLey.periodo);
     meta.addAll(proyectosLey.proyectos().stream()
         .parallel()
@@ -42,8 +44,9 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
                         .build()),
                     new ProyectoLeyMetadataExtraction())
                 .apply(p)
-            )
+        )
         .collect(Collectors.toSet()));
+    LOG.info("{} PL metadata extracted", meta.proyectos().size());
     return meta;
   }
 
@@ -60,16 +63,20 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
 
         var codIni = inputs.select("input[name=CodIni]").first();
         if (codIni == null) {
-          LOG.warn("Error looking up for PL number: {}", pl.url());
+          LOG.warn("Error looking up for PL number: {}-{} url: {}", pl.periodo().texto(), pl.numero(), pl.url());
           return ProyectosLeyMetadata.ProyectoLeyMetadata.from(pl);
         }
 
         var seg =
-        body.select("tr").stream().filter(e -> e.text().startsWith("Seguimiento:"))
-            .findAny()
-            .map(Element::text)
-            .orElse(body.select("td").stream().filter(e -> e.select("b").text().equals("Envío a Comisión:"))
-                .map(e -> e.select("font[size=3]").text()).findAny().orElse(""));
+            body.select("tr").stream().filter(e -> e.text().startsWith("Seguimiento:"))
+                .findAny()
+                .map(Element::text)
+                .orElse(body.select("td")
+                    .stream()
+                    .filter(e -> e.select("b").text().equals("Envío a Comisión:"))
+                    .map(e -> e.select("font[size=3]").text())
+                    .findAny()
+                    .orElse(""));
 
         var seguimientos = new LinkedHashSet<ProyectosLeyMetadata.Seguimiento>();
         if (!seg.isBlank()) {
@@ -79,14 +86,16 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
               .filter(s -> !s.isBlank())
               .collect(toList());
           for (String texto : textos) {
-            if (matcher.find()) {
-              var fecha = matcher.group();
-              seguimientos.add(new ProyectosLeyMetadata.Seguimiento(
-                  LocalDate.parse(fecha.trim(), DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                  texto,
-                  Optional.empty(),
-                  Optional.empty()
-              ));
+            if (!texto.equals("Seguimiento:")) {
+              if (matcher.find()) {
+                var fecha = matcher.group();
+                seguimientos.add(new ProyectosLeyMetadata.Seguimiento(
+                    LocalDate.parse(fecha.trim(), DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                    texto,
+                    Optional.empty(),
+                    Optional.empty()
+                ));
+              }
             }
           }
         }
@@ -104,7 +113,6 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
             }
           }
         }
-
 
         var autores = autores(extractInputValue(inputs, "NomCongre"));
         var adherentes = autores(extractInputValue(inputs, "Adherentes"));
@@ -124,7 +132,8 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
             extractInputValue(inputs, "DesLegis"),
             extractInputValue(inputs, "DesPropo"),
             extractInputValue(inputs, "SumIni"),
-            desGrupParla.isPresent() ? (desGrupParla.get().isEmpty() ? desGrupPol : desGrupParla) : desGrupPol,
+            desGrupParla.isPresent() ? (desGrupParla.get().isEmpty() ? desGrupPol : desGrupParla)
+                : desGrupPol,
 
             autor,
             new HashSet<>(autores),
@@ -146,18 +155,20 @@ public class ProyectosLeyMetadataExtractionV1 implements Function<ProyectosLey, 
       var c = new ArrayList<ProyectosLeyMetadata.Congresista>();
       if (nomCongre.isPresent()) {
         for (var nombres : nomCongre.get().split(",")) {
-          c.add(new ProyectosLeyMetadata.Congresista(
-              nombres.replace("  ", ", "),
-              Optional.empty(), Optional.empty(), Optional.empty()
-          ));
+          if (!nombres.isBlank()) {
+            c.add(new ProyectosLeyMetadata.Congresista(
+                nombres.replace("  ", ", "),
+                Optional.empty(), Optional.empty(), Optional.empty()
+            ));
+          }
         }
-
       }
       return c;
     }
 
     private Optional<String> extractInputValue(Elements inputs, String name) {
-      return Optional.ofNullable(inputs.select("input[name=%s]".formatted(name)).first()).map(e -> e.attr("value"));
+      return Optional.ofNullable(inputs.select("input[name=%s]".formatted(name)).first())
+          .map(e -> e.attr("value"));
     }
 
     public static void main(String[] args) {

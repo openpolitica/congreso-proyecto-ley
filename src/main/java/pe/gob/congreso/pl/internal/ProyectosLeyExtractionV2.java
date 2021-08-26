@@ -14,12 +14,15 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pe.gob.congreso.pl.Periodo;
 import pe.gob.congreso.pl.ProyectosLey;
 
 import static pe.gob.congreso.pl.Constants.BASE_URL_V2;
 
 public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey> {
+  static final Logger LOG = LoggerFactory.getLogger(ProyectosLeyExtractionV2.class);
   HttpClient httpClient = HttpClient.newBuilder().build();
   ObjectMapper mapper = new ObjectMapper();
 
@@ -36,7 +39,6 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
               .uri(URI.create(periodo.baseUrl()))
               .build(),
           HttpResponse.BodyHandlers.ofString());
-      System.out.println(response.body());
       if (response.statusCode() != 200) throw new IllegalStateException("Error on query");
       var responseJson = mapper.readTree(response.body());
       if (responseJson.get("code").asInt() != 200 ||
@@ -58,13 +60,14 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
         ));
       }
 
+      LOG.info("{} PLs extracted", pls.proyectos().size());
       return pls;
     } catch (Exception e) {
       throw new RuntimeException("Error", e);
     }
   }
 
-  public static void main(String[] args) throws IOException, InterruptedException {
+  public static void main(String[] args) throws IOException {
     var pls = new ProyectosLeyExtractionV2().apply(Periodo._2021_2026);
     System.out.println(pls);
     ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());

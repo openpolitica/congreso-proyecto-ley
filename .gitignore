@@ -1,2 +1,6 @@
+target
+
 *.db
-target/
+*.db-journal
+
+*.json

@@ -1,5 +1,13 @@
 package pe.gob.congreso.pl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -7,6 +15,12 @@ import java.util.Optional;
 import java.util.Set;
 
 public class ProyectosLeyMetadata {
+
+  ObjectMapper mapper = new ObjectMapper()
+      .registerModule(new JavaTimeModule())
+      .registerModule(new Jdk8Module())
+      .setDefaultPrettyPrinter(new DefaultPrettyPrinter())
+      .enable(SerializationFeature.INDENT_OUTPUT);
 
   public final Periodo periodo;
   Set<ProyectoLeyMetadata> proyectos = new LinkedHashSet<>();
@@ -21,6 +35,20 @@ public class ProyectosLeyMetadata {
 
   public Set<ProyectoLeyMetadata> proyectos() {
     return Collections.unmodifiableSet(proyectos);
+  }
+
+  public String json() throws JsonProcessingException {
+    return mapper.writeValueAsString(proyectos);
+  }
+
+  public ProyectosLeyMetadata loadJson(String json) throws JsonProcessingException {
+    var set = (ArrayNode) mapper.readTree(json);
+    proyectos = new LinkedHashSet<>();
+    for (var i : set) {
+      var p = mapper.treeToValue(i, ProyectoLeyMetadata.class);
+      proyectos.add(p);
+    }
+    return this;
   }
 
   public record ProyectoLeyMetadata (

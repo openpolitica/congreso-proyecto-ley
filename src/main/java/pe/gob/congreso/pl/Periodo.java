@@ -1,5 +1,9 @@
 package pe.gob.congreso.pl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.function.Function;
 import pe.gob.congreso.pl.internal.ProyectosLeyExtractionV1;
 import pe.gob.congreso.pl.internal.ProyectosLeyExtractionV2;
@@ -90,7 +94,29 @@ public enum Periodo {
     return desde + "-" + hasta;
   }
 
+  public Path path() {
+    return Path.of("proyecto-ley-" + this.texto() + ".json");
+  }
+
+  public void save() throws IOException {
+    var c = collect();
+    Files.writeString(path(), c.json());
+  }
+
+  public void saveFromJson() throws IOException {
+    new ProyectosLeyLoadSqlite().accept(loadJson());
+  }
+
   public void load() {
     new ProyectosLeyLoadSqlite().accept(collect());
+  }
+
+  public void loadFromJson() throws IOException {
+    new ProyectosLeyLoadSqlite().accept(loadJson());
+  }
+
+  private ProyectosLeyMetadata loadJson() throws IOException {
+    var json = Files.readString(path());
+    return new ProyectosLeyMetadata(this).loadJson(json);
   }
 }

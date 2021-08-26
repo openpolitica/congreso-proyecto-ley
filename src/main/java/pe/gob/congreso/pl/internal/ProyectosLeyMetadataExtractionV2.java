@@ -32,11 +32,13 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
   static ObjectMapper mapper = new ObjectMapper();
 
   @Override public ProyectosLeyMetadata apply(ProyectosLey proyectosLey) {
+    LOG.info("Extracting PL metadata");
     var meta = new ProyectosLeyMetadata(proyectosLey.periodo);
     meta.addAll(proyectosLey.proyectos().stream()
         .parallel()
         .map(new ProyectoLeyMetadataExtraction())
         .collect(Collectors.toSet()));
+    LOG.info("{} PL metadata extracted", meta.proyectos().size());
     return meta;
   }
 
