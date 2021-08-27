@@ -2,7 +2,6 @@ package pe.gob.congreso.pl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -63,7 +62,7 @@ public class ProyectosLeyMetadata {
       Optional<String> sumilla,
       Optional<String> grupoParlamentario,
 
-      Optional<Congresista> autores,
+      Optional<Congresista> autor,
       Set<Congresista> coAutores,
       Set<Congresista> adherentes,
 
@@ -98,6 +97,13 @@ public class ProyectosLeyMetadata {
     public String id() {
       var f = "%06d".formatted(numero);
       return "%d-%d-%s".formatted(periodo.desde(), periodo.hasta(), f);
+    }
+
+    public Set<Congresista> firmantes() {
+      final var f = new LinkedHashSet<Congresista>();
+      autor.ifPresent(f::add);
+      f.addAll(coAutores);
+      return f;
     }
   }
 

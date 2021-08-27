@@ -1,6 +1,5 @@
 package pe.gob.congreso.pl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -95,7 +94,11 @@ public enum Periodo {
   }
 
   public Path path() {
-    return Path.of("proyecto-ley-" + this.texto() + ".json");
+    return Path.of(filename() + ".json");
+  }
+
+  public String filename() {
+    return "proyectos-ley-" + this.texto();
   }
 
   public void save() throws IOException {
