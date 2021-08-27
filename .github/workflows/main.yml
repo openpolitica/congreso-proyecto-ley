@@ -53,7 +53,6 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
-
       - name: Use gcloud CLI
         run: gcloud info
       - name: Set region
@@ -61,7 +60,7 @@ jobs:
 
       - name: Deploy datasette
         run: |
-          datasette publish cloudrun proyectos-ley-*.db --service=openpolitica-peru-congreso-proyectos-ley \
+          datasette publish cloudrun proyectos-ley-*.db --service=peru-congreso-proyectos-ley \
             --install datasette-vega \
             --install datasette-export-notebook \
             --install datasette-copyable \
