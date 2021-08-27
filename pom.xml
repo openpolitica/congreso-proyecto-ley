@@ -12,7 +12,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <avro.version>1.10.2</avro.version>
     <jackson.version>2.12.4</jackson.version>
   </properties>
 
@@ -76,24 +75,6 @@
           <source>16</source>
           <target>16</target>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.avro</groupId>
-        <artifactId>avro-maven-plugin</artifactId>
-        <version>${avro.version}</version>
-        <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>schema</goal>
-            </goals>
-            <configuration>
-              <sourceDirectory>${project.basedir}/data/</sourceDirectory>
-              <outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
-              <stringType>String</stringType>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
