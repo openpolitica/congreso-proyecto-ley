@@ -101,24 +101,20 @@ public enum Periodo {
     return "proyectos-ley-" + this.texto();
   }
 
-  public void save() throws IOException {
+  public void importJson() throws IOException {
     var c = collect();
     Files.writeString(path(), c.json());
   }
 
-  public void saveFromJson() throws IOException {
-    new ProyectosLeyLoadSqlite().accept(loadJson());
+  public void exportDbFromJson() throws IOException {
+    new ProyectosLeyLoadSqlite().accept(loadFromJson());
   }
 
   public void load() {
     new ProyectosLeyLoadSqlite().accept(collect());
   }
 
-  public void loadFromJson() throws IOException {
-    new ProyectosLeyLoadSqlite().accept(loadJson());
-  }
-
-  private ProyectosLeyMetadata loadJson() throws IOException {
+  private ProyectosLeyMetadata loadFromJson() throws IOException {
     var json = Files.readString(path());
     return new ProyectosLeyMetadata(this).loadJson(json);
   }

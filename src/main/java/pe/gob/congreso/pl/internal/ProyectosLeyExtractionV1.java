@@ -90,7 +90,7 @@ public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey>
   }
 
   private String extractUrl(Element element) {
-    return BASE_URL_V1 + element.select("a").attr("href");
+    return BASE_URL_V1 + element.select("a").last().attr("href");
   }
 
   public static void main(String[] args) throws IOException {

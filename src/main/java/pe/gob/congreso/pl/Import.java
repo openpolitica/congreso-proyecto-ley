@@ -1,8 +1,9 @@
 package pe.gob.congreso.pl;
 
 import java.io.IOException;
+import java.util.Arrays;
 
-public class Main {
+public class Import {
   public static void main(String[] args) {
     //Periodo._1995_2000.save();
     //Periodo._2000_2001.save();
@@ -21,21 +22,25 @@ public class Main {
     //      }
     //    });
 
-    //Arrays.stream(Periodo.values()).parallel()
-    //    .forEach(periodo -> {
-    //      try {
-    //        periodo.saveFromJson();
-    //      } catch (IOException e) {
-    //        e.printStackTrace();
-    //      }
-    //    });
+    //try {
+    //  Periodo._2016_2021.save();
+    //} catch (IOException e) {
+    //  e.printStackTrace();
+    //}
+
+    Arrays.stream(Periodo.values()).parallel()
+        .forEach(periodo -> {
+          try {
+            periodo.importJson();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        });
 
     //try {
     //  Periodo._2021_2026.saveFromJson();
     //} catch (IOException e) {
     //  e.printStackTrace();
     //}
-
-    Periodo._2021_2026.load();
   }
 }
