@@ -18,9 +18,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set up JDK 16
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
           java-version: 16
+          cache: 'maven'
 
       - name: Download old DBs
         run: |
@@ -28,10 +29,10 @@ jobs:
           tar xf proyectos-ley-2021-db.tar.gz
 
       - name: Build project with Maven
-        run: mvn clean compile
+        run: mvn -B clean compile
 
       - name: Run extraction
-        run: mvn exec:java -D"exec.mainClass"="pe.gob.congreso.pl.Main"
+        run: mvn -B exec:java -D"exec.mainClass"="pe.gob.congreso.pl.Main"
 #
 #  datasette:
 #    # The type of runner that the job will run on
