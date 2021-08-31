@@ -6,7 +6,6 @@ import java.sql.DriverManager;
 import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.SQLType;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
@@ -32,6 +31,11 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
     var jdbcUrl = "jdbc:sqlite:%s.db".formatted(meta.periodo.filename());
     try (var connection = DriverManager.getConnection(jdbcUrl)) {
       var statement = connection.createStatement();
+      statement.executeUpdate("pragma journal_mode = WAL");
+      statement.executeUpdate("pragma synchronous = off");
+      statement.executeUpdate("pragma temp_store = memory");
+      statement.executeUpdate("pragma mmap_size = 300000000");
+      statement.executeUpdate("pragma page_size = 32768");
       for (var tableLoad : tableLoadList) {
         LOG.info("Loading {}", tableLoad.tableName);
         statement.executeUpdate(tableLoad.dropTableStatement());
@@ -50,6 +54,8 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
         ps.executeBatch();
         LOG.info("Table {} updated", tableLoad.tableName);
       }
+      statement.executeUpdate("pragma vacuum;");
+      statement.executeUpdate("pragma optimize;");
     } catch (Exception throwables) {
       throwables.printStackTrace();
     }

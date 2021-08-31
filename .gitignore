@@ -1,6 +1,6 @@
 target
 
 *.db
-*.db-journal
+*.db*
 
 *.json
