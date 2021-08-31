@@ -144,7 +144,7 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
 
   public static void main(String[] args) {
     var meta = new ProyectoLeyMetadataExtraction().apply(new ProyectosLey.ProyectoLey(Periodo._2021_2026,
-        6,
+        101,
         Optional.empty(),
         LocalDate.now(),
         "", "", ""));

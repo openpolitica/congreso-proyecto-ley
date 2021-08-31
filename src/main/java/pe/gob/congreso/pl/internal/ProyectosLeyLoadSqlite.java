@@ -3,8 +3,10 @@ package pe.gob.congreso.pl.internal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.sql.DriverManager;
+import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.SQLType;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
@@ -141,30 +143,42 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
       ps.setString(2, pl.periodo().texto());
       ps.setInt(3, pl.numero());
       if (pl.numeroPeriodo().isPresent()) ps.setString(4, pl.numeroPeriodo().get());
+      else ps.setNull(4, JDBCType.VARCHAR.ordinal());
       if (pl.legislatura().isPresent()) ps.setString(5, pl.legislatura().get());
+      else ps.setNull(5, JDBCType.VARCHAR.ordinal());
       ps.setString(6, pl.fechaPresentacion().format(DateTimeFormatter.ofPattern(YYYY_MM_DD)));
       if (pl.proponente().isPresent()) ps.setString(7, pl.proponente().get());
+      else ps.setNull(7, JDBCType.VARCHAR.ordinal());
       if (pl.grupoParlamentario().isPresent()) ps.setString(8, pl.grupoParlamentario().get());
+      else ps.setNull(8, JDBCType.VARCHAR.ordinal());
       ps.setString(9, pl.estadoActual());
       ps.setString(10, pl.titulo());
       if (pl.sumilla().isPresent()) ps.setString(11, pl.sumilla().get());
+      else ps.setNull(11, JDBCType.VARCHAR.ordinal());
       if (pl.comisionActual().isPresent()) ps.setString(12, pl.comisionActual().get());
+      else ps.setNull(12, JDBCType.VARCHAR.ordinal());
       if (pl.urlExpediente().isPresent()) ps.setString(13, pl.urlExpediente().get());
+      else ps.setNull(13, JDBCType.VARCHAR.ordinal());
       if (!pl.firmantes().isEmpty()) ps.setString(14,
           mapper.writeValueAsString(pl.firmantes().stream()
               .map(ProyectosLeyMetadata.Congresista::nombreCompleto)
               .collect(Collectors.toSet())));
+      else ps.setNull(14, JDBCType.VARCHAR.ordinal());
       if (pl.autor().isPresent()) ps.setString(15, pl.autor().get().nombreCompleto());
+      else ps.setNull(15, JDBCType.VARCHAR.ordinal());
       if (!pl.coAutores().isEmpty()) ps.setString(16,
           mapper.writeValueAsString(pl.coAutores().stream()
               .map(ProyectosLeyMetadata.Congresista::nombreCompleto)
               .collect(Collectors.toSet())));
+      else ps.setNull(16, JDBCType.VARCHAR.ordinal());
       if (!pl.adherentes().isEmpty()) ps.setString(17,
           mapper.writeValueAsString(pl.adherentes().stream()
               .map(ProyectosLeyMetadata.Congresista::nombreCompleto)
               .collect(Collectors.toSet())));
+      else ps.setNull(17, JDBCType.VARCHAR.ordinal());
       if (!pl.comisiones().isEmpty()) ps.setString(18,
           mapper.writeValueAsString(pl.comisiones()));
+      else ps.setNull(18, JDBCType.VARCHAR.ordinal());
       ps.addBatch();
     }
   }
@@ -208,7 +222,9 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
         ps.setString(2, s.fecha().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")));
         ps.setString(3, s.detalle());
         if (s.comision().isPresent()) ps.setString(4, s.comision().get());
+        else ps.setNull(4, JDBCType.VARCHAR.ordinal());
         if (s.estado().isPresent()) ps.setString(5, s.estado().get());
+        else ps.setNull(5, JDBCType.VARCHAR.ordinal());
         ps.addBatch();
       }
     }
