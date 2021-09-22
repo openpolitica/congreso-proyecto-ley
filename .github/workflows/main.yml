@@ -4,7 +4,7 @@ name: publish
 # Controls when the action will run.
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 */2 * * *"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -49,20 +49,18 @@ jobs:
           packages: |
             datasette
             sqlite-utils
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@master
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
-      - name: Use gcloud CLI
-        run: gcloud info
-      - name: Set region
-        run: gcloud config set run/region southamerica-east1
 
-      - name: Deploy datasette
+      - name: Install vercel plugin
         run: |
-          datasette publish cloudrun proyectos-ley-*.db --service=peru-congreso-proyectos-ley \
+          datasette install datasette-publish-vercel
+
+      - name: Deploy Datasette using Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |-
+          datasette publish vercel proyectos-ley-*.db \
+            --token $VERCEL_TOKEN \
+            --project congreso-proyecto-ley \
             --install datasette-vega \
             --install datasette-export-notebook \
             --install datasette-copyable \

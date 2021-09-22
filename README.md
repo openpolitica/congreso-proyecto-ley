@@ -6,4 +6,4 @@ Recolección de metadatos sobre proyectos de ley del [Congreso de la República 
 
 Sets de datos: https://peru-congreso-proyectos-ley-dtnlgurdna-rj.a.run.app/
 
-Frecuencia de actualización: cada 6 horas.
+Frecuencia de actualización: cada 2 horas.
