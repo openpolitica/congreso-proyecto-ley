@@ -118,4 +118,10 @@ public enum Periodo {
     var json = Files.readString(path());
     return new ProyectosLeyMetadata(this).loadJson(json);
   }
+
+  public String periodoId(String id) {
+    var i = id.trim();
+    if (i.length() == 4) i = "0".concat(i);
+    return "%d-%d-%s".formatted(desde(), hasta(), i);
+  }
 }

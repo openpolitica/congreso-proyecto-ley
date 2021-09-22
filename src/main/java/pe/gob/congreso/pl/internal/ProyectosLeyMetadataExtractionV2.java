@@ -77,6 +77,12 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(Collectors.toSet());
+
+        var iniciativasAcumuladas = new LinkedHashSet<String>();
+        for (var i : data.get("acumulados")) {
+          String proyectoLey = i.get("proyectoLey").textValue();
+          iniciativasAcumuladas.add(proyectoLey.split("/")[0]);
+        }
         return new ProyectosLeyMetadata.ProyectoLeyMetadata(
             pl.periodo(),
             data.get("general").get("pleyId").asInt(),
@@ -98,7 +104,8 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
             comisiones,
             comisiones.stream().reduce((s, s2) -> s2),
 
-            Optional.of(pl.url())
+            Optional.of(pl.url()),
+            iniciativasAcumuladas
         );
       } catch (Exception e) {
         throw new RuntimeException("Error", e);

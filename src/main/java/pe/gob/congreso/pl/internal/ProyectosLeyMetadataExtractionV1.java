@@ -143,7 +143,12 @@ public class ProyectosLeyMetadataExtractionV1
             comisiones,
             extractInputValue(inputs, "NombreDeLaComision"),
 
-            extractInputValue(inputs, "NombreDelEnlace")
+            extractInputValue(inputs, "NombreDelEnlace"),
+            extractInputValue(inputs, "CodIniSecu")
+                    .filter(s -> !s.isBlank())
+                    .map(s -> (s.split(",")))
+                    .map(a -> Arrays.stream(a).map(String::trim).collect(Collectors.toSet()))
+                    .orElse(new HashSet<>())
         );
       } catch (Exception e) {
         LOG.error("Error {}", pl.url());

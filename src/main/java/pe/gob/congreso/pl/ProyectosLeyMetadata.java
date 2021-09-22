@@ -70,7 +70,8 @@ public class ProyectosLeyMetadata {
       Set<String> comisiones,
       Optional<String> comisionActual,
 
-      Optional<String> urlExpediente
+      Optional<String> urlExpediente,
+      Set<String> iniciativasAgrupadas
   ) {
     public static ProyectoLeyMetadata from(ProyectosLey.ProyectoLey pl) {
       return new ProyectoLeyMetadata(
@@ -90,14 +91,16 @@ public class ProyectosLeyMetadata {
           Set.of(),
           Set.of(),
           Optional.empty(),
-          Optional.ofNullable(pl.url())
+          Optional.ofNullable(pl.url()),
+          Set.of()
       );
     }
 
     public String id() {
-      var f = "%06d".formatted(numero);
-      return "%d-%d-%s".formatted(periodo.desde(), periodo.hasta(), f);
+      var f = "%05d".formatted(numero);
+      return periodo.periodoId(f);
     }
+
 
     public Set<Congresista> firmantes() {
       final var f = new LinkedHashSet<Congresista>();

@@ -24,7 +24,8 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
   static List<TableLoad> tableLoadList = List.of(
       new ProyectoTableLoad(),
       new SeguimientoTableLoad(),
-      new FirmanteTableLoad()
+      new FirmanteTableLoad(),
+      new IniciativaAgrupadaTableLoad()
   );
 
   @Override public void accept(ProyectosLeyMetadata meta) {
@@ -116,7 +117,8 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
             coautores text,
             adherentes text,
             
-            comisiones text
+            comisiones text,
+            iniciativas_agrupadas text
           )
           """.formatted(tableName);
     }
@@ -138,7 +140,7 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
             ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?,
-            ?, ?, ?
+            ?, ?, ?, ?
           )
           """.formatted(tableName);
     }
@@ -172,7 +174,8 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
       else ps.setNull(14, JDBCType.VARCHAR.ordinal());
       if (pl.autor().isPresent()) ps.setString(15, pl.autor().get().nombreCompleto());
       else ps.setNull(15, JDBCType.VARCHAR.ordinal());
-      if (!pl.coAutores().isEmpty()) ps.setString(16,
+      if (!pl.coAutores().isEmpty())
+        ps.setString(16,
           mapper.writeValueAsString(pl.coAutores().stream()
               .map(ProyectosLeyMetadata.Congresista::nombreCompleto)
               .collect(Collectors.toSet())));
@@ -182,9 +185,13 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
               .map(ProyectosLeyMetadata.Congresista::nombreCompleto)
               .collect(Collectors.toSet())));
       else ps.setNull(17, JDBCType.VARCHAR.ordinal());
-      if (!pl.comisiones().isEmpty()) ps.setString(18,
-          mapper.writeValueAsString(pl.comisiones()));
+      if (!pl.comisiones().isEmpty())
+        ps.setString(18, mapper.writeValueAsString(pl.comisiones()));
       else ps.setNull(18, JDBCType.VARCHAR.ordinal());
+      if (!pl.iniciativasAgrupadas().isEmpty())
+        ps.setString(19, mapper.writeValueAsString(pl.iniciativasAgrupadas()));
+      else ps.setNull(19, JDBCType.VARCHAR.ordinal());
+
       ps.addBatch();
     }
   }
@@ -286,6 +293,47 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
         ps.setString(2, f.nombreCompleto());
         ps.setString(3, "ADHERENTE");
         ps.addBatch();
+      }
+    }
+  }
+
+  static class IniciativaAgrupadaTableLoad extends TableLoad {
+    public IniciativaAgrupadaTableLoad() {
+      super("iniciativa_agrupada");
+    }
+
+    @Override String prepareStatement() {
+      return """
+          insert into %s values (
+            ?, ?
+          )
+          """.formatted(tableName);
+    }
+
+    @Override String createTableStatement() {
+      return """
+          create table %s (
+            proyecto_ley_id text not null,
+            iniciativa_agrupada text not null,
+            FOREIGN KEY(proyecto_ley_id) REFERENCES proyecto_ley(id),
+            FOREIGN KEY(iniciativa_agrupada) REFERENCES proyecto_ley(id)
+          )
+          """.formatted(tableName);
+    }
+
+    @Override List<String> createIndexesStatement() {
+      return List.of(
+      );
+    }
+
+    @Override void addBatch(PreparedStatement ps, ProyectosLeyMetadata.ProyectoLeyMetadata pl)
+            throws SQLException {
+      for (var i : pl.iniciativasAgrupadas()) {
+        if (!i.isBlank()) {
+          ps.setString(1, pl.id());
+          ps.setString(2, pl.periodo().periodoId(i));
+          ps.addBatch();
+        }
       }
     }
   }
