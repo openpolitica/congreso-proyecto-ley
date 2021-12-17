@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -16,6 +17,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pe.gob.congreso.pl.Periodo;
@@ -35,8 +39,16 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
     LOG.info("Extracting PL metadata");
     var meta = new ProyectosLeyMetadata(proyectosLey.periodo);
     meta.addAll(proyectosLey.proyectos().stream()
-        .parallel()
-        .map(new ProyectoLeyMetadataExtraction())
+            .parallel()
+            .map(p -> Retry.decorateFunction(
+                            Retry.of("importar", RetryConfig.custom()
+                                    .maxAttempts(3)
+                                    .retryExceptions(RuntimeException.class)
+                                    .waitDuration(Duration.ofSeconds(10))
+                                    .build()),
+                            new ProyectoLeyMetadataExtraction())
+                    .apply(p)
+            )
         .collect(Collectors.toSet()));
     LOG.info("{} PL metadata extracted", meta.proyectos().size());
     return meta;
