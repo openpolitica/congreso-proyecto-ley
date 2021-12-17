@@ -4,6 +4,6 @@
 
 Recolección de metadatos sobre proyectos de ley del [Congreso de la República peruano](https://wb2server.congreso.gob.pe/spley-portal/#/expediente/search).
 
-Sets de datos: <https://congreso-proyecto-ley-ba5dldyyv-openpolitica-user.vercel.app/>
+Sets de datos: <https://congreso-proyecto-ley-wine.vercel.app/>
 
 Frecuencia de actualización: cada 2 horas.
