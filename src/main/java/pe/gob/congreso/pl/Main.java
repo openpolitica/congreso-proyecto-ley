@@ -1,7 +1,5 @@
 package pe.gob.congreso.pl;
 
-import java.io.IOException;
-
 public class Main {
   public static void main(String[] args) {
     //Periodo._1995_2000.save();
