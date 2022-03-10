@@ -6,6 +6,7 @@ import java.util.Arrays;
 public class Export {
   public static void main(String[] args) {
     Arrays.stream(Periodo.values()).parallel()
+//            .filter(periodo -> periodo.equals(Periodo._2021_2026))
         .forEach(periodo -> {
           try {
             periodo.exportDbFromJson();
@@ -13,11 +14,5 @@ public class Export {
             e.printStackTrace();
           }
         });
-
-//    try {
-//      Periodo._1995_2000.exportDbFromJson();
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
   }
 }

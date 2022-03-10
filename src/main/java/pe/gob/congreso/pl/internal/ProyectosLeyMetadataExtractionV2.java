@@ -125,7 +125,7 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
     private Set<ProyectosLeyMetadata.Comision> comisiones(ArrayNode comisiones) {
       final var list = new HashSet<ProyectosLeyMetadata.Comision>(comisiones.size());
       for (final var comision : comisiones) {
-        list.add(new ProyectosLeyMetadata.Comision(comision.get("id").asInt(), comision.get("nombre").asText()));
+        list.add(new ProyectosLeyMetadata.Comision(comision.get("comisionId").asInt(), comision.get("nombre").asText()));
       }
       return list;
     }
