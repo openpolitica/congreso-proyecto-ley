@@ -10,11 +10,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -85,10 +81,12 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
 
         var seguimientos = seguimientos((ArrayNode) data.get("seguimientos"));
 
-        var comisiones = seguimientos.stream().map(ProyectosLeyMetadata.Seguimiento::comision)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .collect(Collectors.toSet());
+        var comisiones = comisiones((ArrayNode) data.get("comisiones"));
+
+//        var comisiones = seguimientos.stream().map(ProyectosLeyMetadata.Seguimiento::comision)
+//            .filter(Optional::isPresent)
+//            .map(Optional::get)
+//            .collect(Collectors.toSet());
 
         var iniciativasAcumuladas = new LinkedHashSet<String>();
         for (var i : data.get("acumulados")) {
@@ -114,7 +112,7 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
 
             seguimientos,
             comisiones,
-            comisiones.stream().reduce((s, s2) -> s2),
+            comisiones.stream().map(ProyectosLeyMetadata.Comision::nombre).reduce((s, s2) -> s2),
 
             Optional.of(pl.url()),
             iniciativasAcumuladas
@@ -124,6 +122,14 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
       }
     }
 
+    private Set<ProyectosLeyMetadata.Comision> comisiones(ArrayNode comisiones) {
+      final var list = new HashSet<ProyectosLeyMetadata.Comision>(comisiones.size());
+      for (final var comision : comisiones) {
+        list.add(new ProyectosLeyMetadata.Comision(comision.get("id").asInt(), comision.get("nombre").asText()));
+      }
+      return list;
+    }
+
     private Set<ProyectosLeyMetadata.Seguimiento> seguimientos(ArrayNode seguimientos) {
       var s = new LinkedHashSet<ProyectosLeyMetadata.Seguimiento>();
       for (var item : seguimientos) {
@@ -131,7 +137,7 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
             LocalDate.parse(item.get("fecha").asText(), DateTimeFormatter.ofPattern("yyyy-MM-dd'T'kk:mm:ss.SSSZ")),
             item.get("detalle").textValue(),
             Optional.ofNullable(item.get("desEstado")).map(JsonNode::textValue),
-            Optional.ofNullable(item.get("desComision")).map(JsonNode::textValue)
+            Optional.ofNullable(item.get("desComisiones")).map(JsonNode::textValue)
         ));
       }
       return s;
