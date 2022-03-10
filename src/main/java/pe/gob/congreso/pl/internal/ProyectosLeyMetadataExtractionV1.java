@@ -101,15 +101,15 @@ public class ProyectosLeyMetadataExtractionV1
         }
 
         var prefix = "En comisión";
-        var comisiones = new LinkedHashSet<String>();
+        var comisiones = new LinkedHashSet<ProyectosLeyMetadata.Comision>();
         for (var s : seguimientos) {
           if (s.detalle().startsWith(prefix)) {
             final var comision = s.detalle().substring(prefix.length() + 1).strip();
             if (comision.contains("-")) {
               var corregido = comision.substring(0, comision.indexOf("-"));
-              comisiones.add(corregido);
+              comisiones.add(new ProyectosLeyMetadata.Comision(-1, corregido));
             } else {
-              comisiones.add(comision);
+              comisiones.add(new ProyectosLeyMetadata.Comision(-1, comision));
             }
           }
         }

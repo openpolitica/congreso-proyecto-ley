@@ -67,7 +67,7 @@ public class ProyectosLeyMetadata {
       Set<Congresista> adherentes,
 
       Set<Seguimiento> seguimientos,
-      Set<String> comisiones,
+      Set<Comision> comisiones,
       Optional<String> comisionActual,
 
       Optional<String> urlExpediente,
@@ -122,5 +122,10 @@ public class ProyectosLeyMetadata {
     String detalle,
     Optional<String> estado,
     Optional<String> comision
+  ) {}
+
+  public record Comision (
+     int id,
+     String nombre
   ) {}
 }
