@@ -186,7 +186,9 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
               .collect(Collectors.toSet())));
       else ps.setNull(17, JDBCType.VARCHAR.ordinal());
       if (!pl.comisiones().isEmpty())
-        ps.setString(18, mapper.writeValueAsString(pl.comisiones()));
+        ps.setString(18, mapper.writeValueAsString(pl.comisiones().stream()
+                .map(ProyectosLeyMetadata.Comision::nombre)
+                .collect(Collectors.toList())));
       else ps.setNull(18, JDBCType.VARCHAR.ordinal());
       if (!pl.iniciativasAgrupadas().isEmpty())
         ps.setString(19, mapper.writeValueAsString(pl.iniciativasAgrupadas()));
