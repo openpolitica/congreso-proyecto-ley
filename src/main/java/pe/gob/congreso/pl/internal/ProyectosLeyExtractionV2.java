@@ -1,7 +1,9 @@
 package pe.gob.congreso.pl.internal;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.net.URI;
@@ -45,20 +47,39 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
           !responseJson.get("status").textValue().equals("success")) {
         throw new IllegalStateException("Error on response");
       }
-      var dataArray = (ArrayNode) responseJson.get("data");
-      for (var item : dataArray) {
-        var num = item.get("pleyNum").asInt();
-        pls.add(new ProyectosLey.ProyectoLey(
-            periodo,
-            num,
-            Optional.empty(),
-            LocalDate.parse(item.get("fecPresentacion").textValue(),
-                DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-            item.get("desEstado").textValue(),
-            item.get("titulo").textValue(),
-            BASE_URL_V2 + "/spley-portal/#/expediente/%s/%s".formatted(periodo.desde(), num)
-        ));
+      var data = responseJson.get("data");
+      if (data instanceof ArrayNode) { // v1
+        for (var item : data) {
+          var num = item.get("pleyNum").asInt();
+          pls.add(new ProyectosLey.ProyectoLey(
+                  periodo,
+                  num,
+                  Optional.empty(),
+                  LocalDate.parse(item.get("fecPresentacion").textValue(),
+                          DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                  item.get("desEstado").textValue(),
+                  item.get("titulo").textValue(),
+                  BASE_URL_V2 + "/spley-portal/#/expediente/%s/%s".formatted(periodo.desde(), num)
+          ));
+        }
       }
+      if (data instanceof ObjectNode) { // v2
+        for (var item : data.get("proyectos")) {
+          var num = item.get("pleyNum").asInt();
+          var fecPresentacion = item.get("fecPresentacion").textValue();
+          pls.add(new ProyectosLey.ProyectoLey(
+                  periodo,
+                  num,
+                  Optional.empty(),
+                  LocalDate.parse(fecPresentacion.substring(0, fecPresentacion.indexOf("T")),
+                          DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                  item.get("desEstado").textValue(),
+                  item.get("titulo").textValue(),
+                  BASE_URL_V2 + "/spley-portal/#/expediente/%s/%s".formatted(periodo.desde(), num)
+          ));
+        }
+      }
+
 
       LOG.info("{} PLs extracted", pls.proyectos().size());
       return pls;
