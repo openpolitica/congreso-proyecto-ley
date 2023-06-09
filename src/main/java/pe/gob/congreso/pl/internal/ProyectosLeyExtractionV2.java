@@ -1,6 +1,5 @@
 package pe.gob.congreso.pl.internal;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -34,18 +33,18 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
 
       var requestJson = mapper.createObjectNode()
           .put("perParId", periodo.desde());
-      var response = httpClient.send(
-          HttpRequest.newBuilder()
-              .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(requestJson)))
-              .header("Content-Type", "application/json")
-              .uri(URI.create(periodo.baseUrl()))
-              .build(),
-          HttpResponse.BodyHandlers.ofString());
-      if (response.statusCode() != 200) throw new IllegalStateException("Error on query");
+      final HttpRequest request = HttpRequest.newBuilder()
+          .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(requestJson)))
+          .header("Content-Type", "application/json")
+          .uri(URI.create(periodo.baseUrl()))
+          .build();
+      LOG.info("Request: " + request);
+      var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() != 200) throw new IllegalStateException("Error on POST request, response code: " + response.statusCode());
       var responseJson = mapper.readTree(response.body());
       if (responseJson.get("code").asInt() != 200 ||
           !responseJson.get("status").textValue().equals("success")) {
-        throw new IllegalStateException("Error on response");
+        throw new IllegalStateException("Error on POST request, response: " + mapper.writeValueAsString(requestJson));
       }
       var data = responseJson.get("data");
       if (data instanceof ArrayNode) { // v1
