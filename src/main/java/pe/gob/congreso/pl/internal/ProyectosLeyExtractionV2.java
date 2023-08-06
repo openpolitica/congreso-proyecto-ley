@@ -36,6 +36,7 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
       final HttpRequest request = HttpRequest.newBuilder()
           .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(requestJson)))
           .header("Content-Type", "application/json")
+          .header("User-Agent", "Mozilla/5.0 Firefox/26.0")
           .uri(URI.create(periodo.baseUrl()))
           .build();
       LOG.info("Request: " + request);
