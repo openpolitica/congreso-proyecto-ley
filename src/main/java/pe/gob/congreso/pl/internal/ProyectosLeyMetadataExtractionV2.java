@@ -62,6 +62,7 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
             HttpRequest.newBuilder()
                 .GET()
                 .uri(URI.create(url))
+                .header("User-Agent", "Mozilla/5.0 Firefox/26.0")
                 .build(),
             HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 404) {
