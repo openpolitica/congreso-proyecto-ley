@@ -1,4 +1,4 @@
-package pe.gob.congreso.pl.internal;
+package op.congreso.pl.internal;
 
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
@@ -19,9 +19,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pe.gob.congreso.pl.Periodo;
-import pe.gob.congreso.pl.ProyectosLey;
-import pe.gob.congreso.pl.ProyectosLeyMetadata;
+import op.congreso.pl.Periodo;
+import op.congreso.pl.ProyectosLey;
+import op.congreso.pl.ProyectosLeyMetadata;
 
 import static java.util.stream.Collectors.toList;
 

@@ -1,4 +1,4 @@
-package pe.gob.congreso.pl.internal;
+package op.congreso.pl.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -15,10 +15,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pe.gob.congreso.pl.Periodo;
-import pe.gob.congreso.pl.ProyectosLey;
+import op.congreso.pl.Periodo;
+import op.congreso.pl.ProyectosLey;
 
-import static pe.gob.congreso.pl.Constants.BASE_URL_V1;
+import static op.congreso.pl.Constants.BASE_URL_V1;
 
 public class ProyectosLeyExtractionV1 implements Function<Periodo, ProyectosLey> {
 

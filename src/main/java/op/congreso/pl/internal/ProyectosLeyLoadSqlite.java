@@ -1,4 +1,4 @@
-package pe.gob.congreso.pl.internal;
+package op.congreso.pl.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pe.gob.congreso.pl.ProyectosLeyMetadata;
+import op.congreso.pl.ProyectosLeyMetadata;
 
 public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
 
@@ -29,6 +29,7 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
   );
 
   @Override public void accept(ProyectosLeyMetadata meta) {
+    LOG.info("Iniciando carga a SQLite");
     var jdbcUrl = "jdbc:sqlite:%s.db".formatted(meta.periodo.filename());
     try (var connection = DriverManager.getConnection(jdbcUrl)) {
       var statement = connection.createStatement();
@@ -57,8 +58,8 @@ public class ProyectosLeyLoadSqlite implements Consumer<ProyectosLeyMetadata> {
       }
       statement.executeUpdate("pragma vacuum;");
       statement.executeUpdate("pragma optimize;");
-    } catch (Exception throwables) {
-      throwables.printStackTrace();
+    } catch (Exception e) {
+      LOG.error("Error cargando a SQLite", e);
     }
   }
 

@@ -1,4 +1,4 @@
-package pe.gob.congreso.pl;
+package op.congreso.pl;
 
 import java.time.LocalDate;
 import java.util.Collections;

@@ -1,4 +1,4 @@
-package pe.gob.congreso.pl.internal;
+package op.congreso.pl.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -15,12 +15,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.function.Function;
+import op.congreso.pl.Constants;
+import op.congreso.pl.Periodo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pe.gob.congreso.pl.Periodo;
-import pe.gob.congreso.pl.ProyectosLey;
-
-import static pe.gob.congreso.pl.Constants.BASE_URL_V2;
+import op.congreso.pl.ProyectosLey;
 
 public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey> {
   static final Logger LOG = LoggerFactory.getLogger(ProyectosLeyExtractionV2.class);
@@ -28,6 +27,7 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
   ObjectMapper mapper = new ObjectMapper();
 
   @Override public ProyectosLey apply(Periodo periodo) {
+    LOG.info("Iniciando extraccion de lista de proyectos de ley");
     try {
       var pls = new ProyectosLey(periodo);
 
@@ -59,7 +59,7 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
                           DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                   item.get("desEstado").textValue(),
                   item.get("titulo").textValue(),
-                  BASE_URL_V2 + "/spley-portal/#/expediente/%s/%s".formatted(periodo.desde(), num)
+                  Constants.BASE_URL_V2 + "/spley-portal/#/expediente/%s/%s".formatted(periodo.desde(), num)
           ));
         }
       }
@@ -75,7 +75,7 @@ public class ProyectosLeyExtractionV2  implements Function<Periodo, ProyectosLey
                           DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                   item.get("desEstado").textValue(),
                   item.get("titulo").textValue(),
-                  BASE_URL_V2 + "/spley-portal/#/expediente/%s/%s".formatted(periodo.desde(), num)
+                  Constants.BASE_URL_V2 + "/spley-portal/#/expediente/%s/%s".formatted(periodo.desde(), num)
           ));
         }
       }

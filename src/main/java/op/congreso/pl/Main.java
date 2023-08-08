@@ -1,4 +1,4 @@
-package pe.gob.congreso.pl;
+package op.congreso.pl;
 
 public class Main {
   public static void main(String[] args) {

@@ -1,4 +1,4 @@
-package pe.gob.congreso.pl.internal;
+package op.congreso.pl.internal;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,11 +18,11 @@ import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pe.gob.congreso.pl.Periodo;
-import pe.gob.congreso.pl.ProyectosLey;
-import pe.gob.congreso.pl.ProyectosLeyMetadata;
+import op.congreso.pl.Periodo;
+import op.congreso.pl.ProyectosLey;
+import op.congreso.pl.ProyectosLeyMetadata;
 
-import static pe.gob.congreso.pl.Constants.BASE_URL_V2;
+import static op.congreso.pl.Constants.BASE_URL_V2;
 
 public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, ProyectosLeyMetadata> {
 
@@ -32,7 +32,7 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
   static ObjectMapper mapper = new ObjectMapper();
 
   @Override public ProyectosLeyMetadata apply(ProyectosLey proyectosLey) {
-    LOG.info("Extracting PL metadata");
+    LOG.info("Extracting PLs [{}] metadata", proyectosLey.proyectos().size());
     var meta = new ProyectosLeyMetadata(proyectosLey.periodo);
     meta.addAll(proyectosLey.proyectos().stream()
             .parallel()
@@ -55,6 +55,7 @@ public class ProyectosLeyMetadataExtractionV2 implements Function<ProyectosLey, 
 
     @Override
     public ProyectosLeyMetadata.ProyectoLeyMetadata apply(ProyectosLey.ProyectoLey pl) {
+      LOG.info("Extrayendo metadatos de {}-{}", pl.periodo(), pl.numero());
       try {
         var url = BASE_URL_V2 + "/spley-portal-service/expediente/%s/%s"
             .formatted(pl.periodo().desde(), pl.numero());

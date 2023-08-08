@@ -1,4 +1,4 @@
-package pe.gob.congreso.pl;
+package op.congreso.pl;
 
 public class Constants {
   public static final String BASE_URL_V1 = "https://www2.congreso.gob.pe";

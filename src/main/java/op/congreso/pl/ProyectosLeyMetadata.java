@@ -1,4 +1,4 @@
-package pe.gob.congreso.pl;
+package op.congreso.pl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
