@@ -34,7 +34,6 @@ jobs:
 
       - name: Run extraction
         run: mvn -B exec:java
-        timeout-minutes: 30
 
       - uses: actions/setup-python@v1
 
